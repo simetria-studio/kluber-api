@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\ClienteController;
+use App\Http\Controllers\api\PontoLubController;
 
 
 /*
@@ -27,3 +28,11 @@ Route::post('/get-user-info', [UserController::class, 'getUserInfo']);
 Route::post('/get-users-kluber', [UserController::class, 'getUsersKluber']);
 
 Route::post('/get-clientes', [ClienteController::class, 'getClientes']);
+
+Route::post('/get-components', [PontoLubController::class, 'components']);
+Route::post('/get-cond-op', [PontoLubController::class, 'condOp']);
+Route::post('/get-unidade-med', [PontoLubController::class, 'unidadeMed']);
+Route::post('/get-atividade-breve', [PontoLubController::class, 'atividadeBreve']);
+Route::post('/get-frequencia', [PontoLubController::class, 'frequencia']);
+Route::post('/get-material', [PontoLubController::class, 'material']);
+Route::post('/get-nsf', [PontoLubController::class, 'nsf']);
