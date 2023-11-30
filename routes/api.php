@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\ClienteController;
+use App\Http\Controllers\api\PlanoLubController;
 use App\Http\Controllers\api\PontoLubController;
 
 
@@ -36,3 +37,13 @@ Route::post('/get-atividade-breve', [PontoLubController::class, 'atividadeBreve'
 Route::post('/get-frequencia', [PontoLubController::class, 'frequencia']);
 Route::post('/get-material', [PontoLubController::class, 'material']);
 Route::post('/get-nsf', [PontoLubController::class, 'nsf']);
+
+Route::post('/get-area', [PlanoLubController::class, 'area']);
+Route::post('/get-subarea', [PlanoLubController::class, 'subarea']);
+Route::post('/get-linha', [PlanoLubController::class, 'linha']);
+Route::post('/get-tag', [PlanoLubController::class, 'tag']);
+Route::post('/get-maquina', [PlanoLubController::class, 'maquina']);
+Route::post('/get-conjunto', [PlanoLubController::class, 'conjunto']);
+Route::post('/get-equipamento', [PlanoLubController::class, 'equipamento']);
+Route::post('/sync-plan', [PlanoLubController::class, 'store']);
+Route::post('/get-plan', [PlanoLubController::class, 'getPlans']);
