@@ -212,7 +212,7 @@ class PlanoLubController extends Controller
 
     public function getPlans()
     {
-        $planos = Plano::with('cliente')->get();
+        $planos = Plano::with('cliente')->limit(100)->get();
 
         return response()->json($planos);
     }
