@@ -154,7 +154,7 @@ class PlanoLubController extends Controller
                     'data_plano' => date("Y-m-d", strtotime($planoData['dataCadastro'])),
                     'data_revisao' => date("Y-m-d", strtotime($planoData['dataRevisao'])),
                     'nome_supervisor' => ' ',
-                    'nome_lubrificador' => $planoData['responsavelArea'],
+                    'nome_lubrificador' => $planoData['responsavelArea'] ?? ' ',
                     'responsavel_kluber' => $planoData['responsavelKluber'],
                     'ativo' => 'S',
                     'codigo_mobile' => $planoData['codigo_mobile'],
