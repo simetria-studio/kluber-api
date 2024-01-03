@@ -149,7 +149,7 @@ class PlanoLubController extends Controller
                 $plano = Plano::create([
                     'codigo_empresa' => '0001',
                     'numero_plano' => '000' . str_pad($nextNumeroPlano, 3, '0', STR_PAD_LEFT),
-                    'codigo_unidade' => $cliente->codigo_cliente,
+                    'codigo_unidade' => $cliente->codigo_cliente ?? ' ',
                     'versao_plano' => ' ',
                     'data_plano' => date("Y-m-d", strtotime($planoData['dataCadastro'])),
                     'data_revisao' => date("Y-m-d", strtotime($planoData['dataRevisao'])),
