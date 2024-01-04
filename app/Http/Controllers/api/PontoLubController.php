@@ -29,7 +29,7 @@ class PontoLubController extends Controller
     public function atividadeBreve()
     {
 
-        $atividadeBreve = Component::where('nome', 'ativade_breve')->get();
+        $atividadeBreve = Component::where('nome', 'descricao_atividade')->get();
 
         return response()->json($atividadeBreve);
     }
