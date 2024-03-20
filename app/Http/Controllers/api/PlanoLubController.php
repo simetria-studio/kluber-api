@@ -209,7 +209,6 @@ class PlanoLubController extends Controller
                                     $novoConjuntoEquip->area = $novaArea->nome_area;
                                     $novoConjuntoEquip->subarea = $novaSubarea->nome_subarea;
                                     $novoConjuntoEquip->linha = $novaLinha->nome_linha;
-                                    $novoConjuntoEquip->tag = $novaTagMaquina->tag;
                                     $novoConjuntoEquip->maquina = $novaTagMaquina->nome_maquina;
                                     $novoConjuntoEquip->conjunto = $conjuntoEquip['conj_nome'];
                                     $novoConjuntoEquip->equipamento = $conjuntoEquip['equi_nome'];
