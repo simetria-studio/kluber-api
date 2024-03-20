@@ -206,10 +206,10 @@ class PlanoLubController extends Controller
                                     $novoConjuntoEquip = new EquipMaster();
                                     $novoConjuntoEquip->codigo_empresa = '0001';
                                     $novoConjuntoEquip->planta = '0001';
-                                    $novoConjuntoEquip->area = $novaArea->nome_area;
-                                    $novoConjuntoEquip->subarea = $novaSubarea->nome_subarea;
-                                    $novoConjuntoEquip->linha = $novaLinha->nome_linha;
-                                    $novoConjuntoEquip->maquina = $novaTagMaquina->nome_maquina;
+                                    $novoConjuntoEquip->area = $novaArea->id;
+                                    $novoConjuntoEquip->subarea = $novaSubarea->id;
+                                    $novoConjuntoEquip->linha = $novaLinha->id;
+                                    $novoConjuntoEquip->maquina = $novaTagMaquina->id;
                                     $novoConjuntoEquip->conjunto = $conjuntoEquip['conj_nome'];
                                     $novoConjuntoEquip->equipamento = $conjuntoEquip['equi_nome'];
                                     $novoConjuntoEquip->numero_plano = $plano->numero_plano;
