@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\api;
 
 use Carbon\Carbon;
+use App\Models\Area;
+use App\Models\Linha;
 use App\Models\Plano;
-use App\Models\Cliente;
-use App\Models\PontoLub;
 
+use App\Models\Cliente;
+use App\Models\SubArea;
+use App\Models\PontoLub;
 use App\Models\EquipMaster;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\AtvComponente;
+use App\Models\Maquina;
 
 class PlanoLubController extends Controller
 {
@@ -138,9 +143,12 @@ class PlanoLubController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->data;
+        $data = $request->all();
+
+        \Log::info($data);
 
         foreach ($data as $planoData) {
+            // Salvar o plano de lubrificação
             $lastPlano = Plano::orderBy('numero_plano', 'desc')->first(); // Encontre o último plano
             $nextNumeroPlano = $lastPlano ? (int) $lastPlano->numero_plano + 1 : 1; // Adicione 1 ao último número do plano ou comece com 1 se não houver planos existentes
             $existingPlano = Plano::where('codigo_mobile', $planoData['codigo_mobile'])->first();
@@ -151,63 +159,91 @@ class PlanoLubController extends Controller
                     'numero_plano' => '000' . str_pad($nextNumeroPlano, 3, '0', STR_PAD_LEFT),
                     'codigo_unidade' => $cliente->codigo_cliente ?? ' ',
                     'versao_plano' => ' ',
-                    'data_plano' => date("Y-m-d", strtotime($planoData['dataCadastro'])),
-                    'data_revisao' => date("Y-m-d", strtotime($planoData['dataRevisao'])),
+                    'data_plano' => date("Y-m-d", strtotime($planoData['data_cadastro'])),
+                    'data_revisao' => date("Y-m-d", strtotime($planoData['data_revisao'])),
                     'nome_supervisor' => ' ',
-                    'nome_lubrificador' => $planoData['responsavelArea'] ?? ' ',
-                    'responsavel_kluber' => $planoData['responsavelKluber'] ?? ' ',
+                    'nome_lubrificador' => $planoData['responsavel_lubrificacao'] ?? ' ',
+                    'responsavel_kluber' => $planoData['responsavel_kluber'] ?? ' ',
                     'ativo' => 'S',
-                    'codigo_mobile' => $planoData['codigo_mobile'],
+                    'codigo_mobile' => $planoData['codigo_mobile'] ?? ' ',
                 ]);
 
-                foreach ($planoData['itensPlano'] as $itemPlanoData) {
+                // Iterar sobre as áreas
+                foreach ($planoData['areas'] as $area) {
+                    $novaArea = new Area();
+                    $novaArea->nome_area = $area['nome'];
+                    $novaArea->id_plano = $plano->id;
+                    $novaArea->ativo = 'S';
+                    $novaArea->save();
 
-                    $equipamento = EquipMaster::create([
-                        'codigo_empresa' => '0001',
-                        'planta' => $cliente->codigo_cliente,
-                        'area' => $itemPlanoData['area'],
-                        'subarea' => $itemPlanoData['subarea'],
-                        'linha' => $itemPlanoData['linha'],
-                        'tag' => $itemPlanoData['tag'],
-                        'maquina' => $itemPlanoData['maquina'],
-                        'conjunto' => $itemPlanoData['conjunto'],
-                        'equipamento' => $itemPlanoData['equipamento'],
-                        'numero_plano' => $planoData['numero_plano'],
-                        'qtde_pontos_total' => 0,
-                        'codigo_mobile' => $planoData['codigo_mobile'],
-                        'ativo' => 'S',
-                    ]);
+                    // Iterar sobre as subáreas
+                    foreach ($area['subareas'] as $subarea) {
+                        $novaSubarea = new SubArea();
+                        $novaSubarea->nome_subarea = $subarea['nome'];
+                        $novaSubarea->id_area = $novaArea->id;
+                        $novaSubarea->ativo = 'S';
+                        $novaSubarea->save();
 
-                    foreach ($itemPlanoData['detalhes'] as $detalheData) {
+                        // Iterar sobre as linhas
+                        foreach ($subarea['linhas'] as $linha) {
+                            $novaLinha = new Linha();
+                            $novaLinha->nome_linha = $linha['nome'];
+                            $novaLinha->id_subarea = $novaSubarea->id;
+                            $novaLinha->ativo = 'S';
+                            $novaLinha->save();
 
-                        $ponto = PontoLub::create([
-                            'codigo_empresa' => '0001',
-                            'id_equipamento' => $equipamento->id,
-                            'numero_ponto' => $detalheData['qtyPontos'], // Ajuste conforme necessário
-                            'componente' => $detalheData['componente'],
-                            'numero_plano' => $planoData['numero_plano'], // Ajuste conforme necessário
-                            'qtde_pontos' => $detalheData['qtyPontos'],
-                            'condicao_operacional' => $detalheData['condiop'],
-                            'descritivo_simplificado' => $detalheData['atividadeBreve'],
-                            'descritivo_longo' => '', // Ajuste conforme necessário
-                            'frequencia' => $detalheData['frequencia'],
-                            'tempo_atividade' => $detalheData['tempoAtividade'],
-                            'qtde_pessoas' => $detalheData['qtyPessoas'],
-                            'qtde_material' => $detalheData['qtyMaterial'],
-                            'unidade_medida' => $detalheData['uniMedida'],
-                            'material' => $detalheData['material'],
-                            'codigo_produto' => $detalheData['codigo'],
-                            'nsf' => $detalheData['nsf'],
-                            'data_ultimo_lancamento' => $planoData['codigo_mobile'], // Ajuste conforme necessário
-                            'codigo_mobile' => $planoData['codigo_mobile'],
-                            'ativo' => 'S',
-                        ]);
+                  
+                            foreach ($linha['tags_maquinas'] as $tagMaquina) {
+                                $novaTagMaquina = new Maquina();
+                                $novaTagMaquina->nome_maquina = $tagMaquina['maquina_nome'];
+                                $novaTagMaquina->id_linha = $novaLinha->id;
+                                $novaTagMaquina->tag = $tagMaquina['tag_nome'];
+                                $novaTagMaquina->ativo = 'S';
+                                $novaTagMaquina->save();
+
+                                // Iterar sobre os conjuntos de equipamentos
+                                foreach ($tagMaquina['conjuntos_equip'] as $conjuntoEquip) {
+                                    $novoConjuntoEquip = new EquipMaster();
+                                    $novoConjuntoEquip->codigo_empresa = '0001';
+                                    $novoConjuntoEquip->planta = '0001';
+                                    $novoConjuntoEquip->area = $novaArea->nome_area;
+                                    $novoConjuntoEquip->subarea = $novaSubarea->nome_subarea;
+                                    $novoConjuntoEquip->linha = $novaLinha->nome_linha;
+                                    $novoConjuntoEquip->tag = $novaTagMaquina->tag;
+                                    $novoConjuntoEquip->maquina = $novaTagMaquina->nome_maquina;
+                                    $novoConjuntoEquip->conjunto = $conjuntoEquip['conj_nome'];
+                                    $novoConjuntoEquip->equipamento = $conjuntoEquip['equi_nome'];
+                                    $novoConjuntoEquip->numero_plano = $plano->numero_plano;
+                                    $novoConjuntoEquip->qtde_pontos_total = '  ';
+                                    $novoConjuntoEquip->ativo = 'S';
+                                    $novoConjuntoEquip->save();
+                                    // Iterar sobre os pontos
+                                    foreach ($conjuntoEquip['pontos'] as $ponto) {
+                                        $componente = AtvComponente::create([
+                                            'componente' => $ponto['component_codigo'],
+                                            'sequencia' => $plano->numero_plano,
+                                            'qtde_pontos' => $ponto['qty_pontos'],
+                                            'condicao_operacional' => $ponto['cond_op_codigo'],
+                                            'descritivo_simplificado' => $ponto['atv_breve_name'],
+                                            'frequencia' => $ponto['period_codigo'],
+                                            'periodicidade' => $ponto['period_name'],
+                                            'tempo_atividade' => ' ',
+                                            'qtde_pessoas' => $ponto['qty_pessoas'],
+                                            'qtde_material' => $ponto['qty_material'],
+                                            'codigo_produto' => $ponto['lub_codigo'],
+                                            'data_hora_alteracao' => Carbon::now(),
+                                            'ativo' => 'S',
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        return response()->json('Plano de lubrificação cadastrado com sucesso!');
+            return response()->json('Plano(s) de lubrificação cadastrado(s) com sucesso!');
+        }
     }
 
     public function getPlans()
