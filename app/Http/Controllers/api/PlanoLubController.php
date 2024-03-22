@@ -192,7 +192,7 @@ class PlanoLubController extends Controller
                             $novaLinha->ativo = 'S';
                             $novaLinha->save();
 
-                  
+
                             foreach ($linha['tags_maquinas'] as $tagMaquina) {
                                 $novaTagMaquina = new Maquina();
                                 $novaTagMaquina->nome_maquina = $tagMaquina['maquina_nome'];
@@ -251,4 +251,6 @@ class PlanoLubController extends Controller
 
         return response()->json($planos);
     }
+
+
 }
