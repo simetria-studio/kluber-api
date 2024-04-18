@@ -10,28 +10,40 @@ use Illuminate\Http\Request;
 
 class PontoLubController extends Controller
 {
-    public function components()
+    public function components(Request $request)
     {
 
-        $components = Component::where('nome', 'componente')->get();
-
-        return response()->json($components);
+        if (!$request->search_text) {
+            $components = Component::where('nome', 'componente')->get();
+            return response()->json($components);
+        } else {
+            $components = Component::where('nome', 'componente')->where('descricao', 'like', '%' . $request->search_text . '%')->get();
+            return response()->json($components);
+        }
     }
 
-    public function condOp()
+    public function condOp(Request $request)
     {
 
-        $condOp = Component::where('nome', 'condicao_operacional')->get();
-
-        return response()->json($condOp);
+        if (!$request->search_text) {
+            $condOp = Component::where('nome', 'condicao_operacional')->get();
+            return response()->json($condOp);
+        } else {
+            $condOp = Component::where('nome', 'condicao_operacional')->where('descricao', 'like', '%' . $request->search_text . '%')->get();
+            return response()->json($condOp);
+        }
     }
 
-    public function atividadeBreve()
+    public function atividadeBreve(Request $request)
     {
 
-        $atividadeBreve = Component::where('nome', 'descricao_atividade')->get();
-
-        return response()->json($atividadeBreve);
+        if (!$request->search_text) {
+            $atividadeBreve = Component::where('nome', 'descricao_atividade')->get();
+            return response()->json($atividadeBreve);
+        } else {
+            $atividadeBreve = Component::where('nome', 'descricao_atividade')->where('descricao', 'like', '%' . $request->search_text . '%')->get();
+            return response()->json($atividadeBreve);
+        }
     }
 
     public function unidadeMed()
@@ -42,19 +54,29 @@ class PontoLubController extends Controller
         return response()->json($unidadeMed);
     }
 
-    public function frequencia()
+    public function frequencia(Request $request)
     {
 
-        $frequencia = Component::where('nome', 'frequencia')->get();
-        return response()->json($frequencia);
+        if (!$request->search_text) {
+            $frequencia = Component::where('nome', 'frequencia')->get();
+            return response()->json($frequencia);
+        } else {
+            $frequencia = Component::where('nome', 'frequencia')->where('descricao', 'like', '%' . $request->search_text . '%')->get();
+            return response()->json($frequencia);
+        }
+
     }
 
-    public function material()
+    public function material(Request $request)
     {
 
-        $material = ProdutoLub::all();
-
-        return response()->json($material);
+        if (!$request->search_text) {
+            $material = ProdutoLub::all();
+            return response()->json($material);
+        } else {
+            $material = ProdutoLub::where('descricao_produto', 'like', '%' . $request->search_text . '%')->get();
+            return response()->json($material);
+        }
     }
 
     public function nsf()

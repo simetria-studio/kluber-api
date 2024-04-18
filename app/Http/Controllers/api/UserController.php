@@ -30,7 +30,7 @@ class UserController extends Controller
 
             return response()->json($users);
         } else {
-            $users = Usuario::where('nivel_kluber', 'COL')->where('nome_usuario_completo', 'like', '%' . $request->search_text . '%')->select([
+            $users = Usuario::where('nivel_kluber', 'COL')->where('nome_usuario', 'like', '%' . $request->search_text . '%')->select([
                 'id',
                 'nome_usuario',
                 'nome_usuario_completo',
