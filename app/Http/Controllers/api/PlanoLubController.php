@@ -75,9 +75,9 @@ class PlanoLubController extends Controller
     
                                 foreach ($linha['tags_maquinas'] as $tagMaquina) {
                                     $novaTagMaquina = new Maquina();
-                                    $novaTagMaquina->nome_maquina = $tagMaquina['maquina_nome'];
+                                    $novaTagMaquina->nome_maquina = $tagMaquina['maquina_nome'] ?? ' ';
                                     $novaTagMaquina->id_linha = $novaLinha->id;
-                                    $novaTagMaquina->tag = $tagMaquina['tag_nome'];
+                                    $novaTagMaquina->tag = $tagMaquina['tag_nome'] ?? ' ';
                                     $novaTagMaquina->ativo = 'S';
                                     $novaTagMaquina->save();
     
