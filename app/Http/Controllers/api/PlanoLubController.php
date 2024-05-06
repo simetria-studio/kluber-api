@@ -102,7 +102,7 @@ class PlanoLubController extends Controller
                                                 'codigo_empresa' => '0001',
                                                 'id_equipamento' => $novoConjuntoEquip->id,
                                                 'componente' => $ponto['component_codigo'],
-                                                // 'sequencia' => $plano->numero_plano,
+                                                'numero_plano' => $plano->numero_plano,
                                                 'numero_ponto' => ' ',
                                                 'qtde_pontos' => $ponto['qty_pontos'],
                                                 'condicao_operacional' => $ponto['cond_op_name'],
