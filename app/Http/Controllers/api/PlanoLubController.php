@@ -85,7 +85,7 @@ class PlanoLubController extends Controller
                                     foreach ($tagMaquina['conjuntos_equip'] as $conjuntoEquip) {
                                         $novoConjuntoEquip = new EquipMaster();
                                         $novoConjuntoEquip->codigo_empresa = '0001';
-                                        $novoConjuntoEquip->planta = '0001';
+                                        $novoConjuntoEquip->planta = $plano->codigo_unidade;
                                         $novoConjuntoEquip->area = $novaArea->id;
                                         $novoConjuntoEquip->subarea = $novaSubarea->id;
                                         $novoConjuntoEquip->linha = $novaLinha->id;
