@@ -97,13 +97,13 @@ class PlanoLubController extends Controller
                                         $novoConjuntoEquip->ativo = 'S';
                                         $novoConjuntoEquip->save();
                                         // Iterar sobre os pontos
-                                        foreach ($conjuntoEquip['pontos'] as $ponto) {
+                                        foreach ($conjuntoEquip['pontos'] as $key => $ponto) {
                                             $componente = AtvComponente::create([
                                                 'codigo_empresa' => '0001',
                                                 'id_equipamento' => $novoConjuntoEquip->id,
                                                 'componente' => $ponto['component_codigo'],
                                                 'numero_plano' => $plano->numero_plano,
-                                                'numero_ponto' => ' ',
+                                                'numero_ponto' => $key,
                                                 'qtde_pontos' => $ponto['qty_pontos'],
                                                 'condicao_operacional' => $ponto['cond_op_name'],
                                                 'descritivo_simplificado' => $ponto['atv_breve_name'],
