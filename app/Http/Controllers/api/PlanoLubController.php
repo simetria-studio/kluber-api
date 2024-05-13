@@ -18,15 +18,15 @@ use App\Models\Maquina;
 
 class PlanoLubController extends Controller
 {
-   
+
 
     public function store(Request $request)
     {
         try {
             $data = $request->all();
-    
+
             \Log::info($data);
-    
+
             foreach ($data as $planoData) {
                 // Salvar o plano de lubrificação
                 $lastPlano = Plano::orderBy('numero_plano', 'desc')->first(); // Encontre o último plano
@@ -47,7 +47,7 @@ class PlanoLubController extends Controller
                         'ativo' => 'S',
                         'codigo_mobile' => $planoData['codigo_mobile'] ?? ' ',
                     ]);
-    
+
                     // Iterar sobre as áreas
                     foreach ($planoData['areas'] as $area) {
                         $novaArea = new Area();
@@ -55,7 +55,7 @@ class PlanoLubController extends Controller
                         $novaArea->id_plano = $plano->id;
                         $novaArea->ativo = 'S';
                         $novaArea->save();
-    
+
                         // Iterar sobre as subáreas
                         foreach ($area['subareas'] as $subarea) {
                             $novaSubarea = new SubArea();
@@ -63,7 +63,7 @@ class PlanoLubController extends Controller
                             $novaSubarea->id_area = $novaArea->id;
                             $novaSubarea->ativo = 'S';
                             $novaSubarea->save();
-    
+
                             // Iterar sobre as linhas
                             foreach ($subarea['linhas'] as $linha) {
                                 $novaLinha = new Linha();
@@ -71,8 +71,8 @@ class PlanoLubController extends Controller
                                 $novaLinha->id_subarea = $novaSubarea->id;
                                 $novaLinha->ativo = 'S';
                                 $novaLinha->save();
-    
-    
+
+
                                 foreach ($linha['tags_maquinas'] as $tagMaquina) {
                                     $novaTagMaquina = new Maquina();
                                     $novaTagMaquina->nome_maquina = $tagMaquina['maquina_nome'] ?? ' ';
@@ -80,7 +80,7 @@ class PlanoLubController extends Controller
                                     $novaTagMaquina->tag = $tagMaquina['tag_nome'] ?? ' ';
                                     $novaTagMaquina->ativo = 'S';
                                     $novaTagMaquina->save();
-    
+
                                     // Iterar sobre os conjuntos de equipamentos
                                     foreach ($tagMaquina['conjuntos_equip'] as $conjuntoEquip) {
                                         $novoConjuntoEquip = new EquipMaster();
@@ -97,13 +97,15 @@ class PlanoLubController extends Controller
                                         $novoConjuntoEquip->ativo = 'S';
                                         $novoConjuntoEquip->save();
                                         // Iterar sobre os pontos
-                                        foreach ($conjuntoEquip['pontos'] as $key => $ponto) {
+                                        $sequencial = 1; // Inicializa a variável contadora sequencial
+
+                                        foreach ($conjuntoEquip['pontos'] as $ponto) {
                                             $componente = AtvComponente::create([
                                                 'codigo_empresa' => '0001',
                                                 'id_equipamento' => $novoConjuntoEquip->id,
                                                 'componente' => $ponto['component_codigo'],
                                                 'numero_plano' => $plano->numero_plano,
-                                                'numero_ponto' => $key,
+                                                'numero_ponto' => $sequencial, // Use a variável sequencial como número de ponto
                                                 'qtde_pontos' => $ponto['qty_pontos'],
                                                 'condicao_operacional' => $ponto['cond_op_name'],
                                                 'descritivo_simplificado' => $ponto['atv_breve_name'],
@@ -119,6 +121,8 @@ class PlanoLubController extends Controller
                                                 'data_ultimo_lancamento' => Carbon::now(),
                                                 'ativo' => 'S',
                                             ]);
+
+                                            $sequencial++; // Incrementa a variável sequencial para o próximo número de ponto
                                         }
                                     }
                                 }
@@ -127,7 +131,7 @@ class PlanoLubController extends Controller
                     }
                 }
             }
-    
+
             return response()->json('Plano(s) de lubrificação cadastrado(s) com sucesso!');
         } catch (\Exception $e) {
             // Handle the exception here
@@ -135,7 +139,7 @@ class PlanoLubController extends Controller
             return response()->json('Ocorreu um erro ao processar a solicitação.', 500);
         }
     }
-    
+
 
     public function getPlans()
     {
@@ -143,6 +147,4 @@ class PlanoLubController extends Controller
 
         return response()->json($planos);
     }
-
-
 }
