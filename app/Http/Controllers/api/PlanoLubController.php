@@ -107,10 +107,10 @@ class PlanoLubController extends Controller
                                                 'numero_plano' => $plano->numero_plano,
                                                 'numero_ponto' => $sequencial, // Use a variável sequencial como número de ponto
                                                 'qtde_pontos' => $ponto['qty_pontos'],
-                                                'condicao_operacional' => $ponto['cond_op_name'],
+                                                'condicao_operacional' => $ponto['cond_op_codigo'],
                                                 'descritivo_simplificado' => $ponto['atv_breve_name'],
                                                 'descritivo_longo' => $ponto['atv_breve_name'],
-                                                'frequencia' => $ponto['period_name'],
+                                                'frequencia' => $ponto['period_codigo'],
                                                 'tempo_atividade' => $ponto['tempo_atv'],
                                                 'qtde_pessoas' => $ponto['qty_pessoas'],
                                                 'qtde_material' => $ponto['qty_material'],
