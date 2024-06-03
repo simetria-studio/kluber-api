@@ -114,7 +114,7 @@ class PlanoLubController extends Controller
                                                 'tempo_atividade' => $ponto['tempo_atv'],
                                                 'qtde_pessoas' => $ponto['qty_pessoas'],
                                                 'qtde_material' => $ponto['qty_material'],
-                                                'unidade_medida' => ' ',
+                                                'unidade_medida' => $ponto['unidade_medida_codigo'],
                                                 'material' => $ponto['lub_codigo'],
                                                 'codigo_produto' => ' ',
                                                 'nsf' => '  ',
