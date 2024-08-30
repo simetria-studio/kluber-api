@@ -31,6 +31,7 @@ class PontoLub extends Model
         'codigo_produto',
         'nsf',
         'data_ultimo_lancamento',
+        'texto_longo',
         'ativo',
     ];
     public $timestamps = false;

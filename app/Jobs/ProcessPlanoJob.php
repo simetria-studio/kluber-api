@@ -9,6 +9,7 @@ use App\Models\Linha;
 use App\Models\Maquina;
 use App\Models\EquipMaster;
 use App\Models\AtvComponente;
+use App\Models\TextoLongo;
 use App\Models\Cliente;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -30,7 +31,7 @@ class ProcessPlanoJob implements ShouldQueue
 
     public function handle()
     {
-     
+
         try {
             $planoData = $this->planoData;
             $lastPlano = Plano::orderBy('numero_plano', 'desc')->first();
@@ -99,6 +100,20 @@ class ProcessPlanoJob implements ShouldQueue
 
                                     $sequencial = 1;
                                     foreach ($conjuntoEquip['pontos'] as $ponto) {
+                                        //ELLER NÃO MEXER NESSE CÓDIGO, SE PODE CAGAR COM TUDO 
+                                        $textoLongo = TextoLongo::where('codigo_atv', $ponto['atv_breve_codigo'])->first();
+
+                                        if ($textoLongo) {
+                                           
+                                            $textoComSubstituicao = str_replace('{{DESCRIÇÃO_MATERIAL}}', $ponto['lub_name'], $textoLongo->texto);
+                                           
+                                            $textoComSubstituicao = str_replace('{{CODIGO_PRODUTO}}', $ponto['lub_codigo'], $textoComSubstituicao);
+                                        } else {
+                                            $textoComSubstituicao = '';
+                                        }
+
+                                        \Log::info('Texto longo após substituições: ' . $textoComSubstituicao);
+
                                         AtvComponente::create([
                                             'codigo_empresa' => '0001',
                                             'id_equipamento' => $novoConjuntoEquip->id,
@@ -118,6 +133,7 @@ class ProcessPlanoJob implements ShouldQueue
                                             'codigo_produto' => ' ',
                                             'nsf' => '  ',
                                             'data_ultimo_lancamento' => Carbon::now(),
+                                            'texto_longo' => $textoComSubstituicao,
                                             'ativo' => 'S',
                                         ]);
 
@@ -131,8 +147,7 @@ class ProcessPlanoJob implements ShouldQueue
             }
         } catch (\Exception $e) {
             \Log::error($e->getMessage());
-            throw $e; // Para garantir que a fila detecte o erro e re-tente se configurado.
+            throw $e; 
         }
     }
 }
-
