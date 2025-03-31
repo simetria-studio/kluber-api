@@ -36,7 +36,7 @@ class AuthController extends Controller
         $senha = false;
         $usuario = Usuario::where('nome_usuario', $request->usuario)->first();
 
-
+        \Log::info($usuario);
         if (empty($usuario->password)) {
             function resto($dividendo, $divisor)
             {
@@ -92,21 +92,50 @@ class AuthController extends Controller
             return response()->json(['login_error' => 'Verifique usuario ou senha!'], 422);
         }
 
-        $update_token['access_token'] = (string) \Str::uuid();
-        $update_token['token_expires_in'] = date('Y-m-d H:i:s', strtotime('+24 Hours'));
-
-        $remember = $request->remember ? true : false;
-
-        $authValid = Auth::guard('web')->validate(['nome_usuario' => $request->usuario, 'password' => $request->password]);
+        $authValid = Auth::guard('web')->validate([
+            'nome_usuario' => $request->usuario, 
+            'password' => $request->password
+        ]);
 
         if ($authValid) {
+            // Busca o usuário e seu token atual
+            $usuario = Usuario::where('nome_usuario', $request->usuario)->first();
+            
+            // Se não existe token ou o token está expirado, cria um novo
+            if (empty($usuario->access_token) || $this->isTokenExpired($usuario->access_token)) {
+                $newToken = [
+                    'access_token' => (string) \Str::uuid(),
+                    'token_expires_in' => date('Y-m-d H:i:s', strtotime('+24 Hours'))
+                ];
+                
+                $token = Crypt::encryptString(collect($newToken['access_token']));
+                $usuario->update(['access_token' => $token]);
+                
+                return response()->json([
+                    'access_token' => $token,
+                    'token_expires_in' => $newToken['token_expires_in']
+                ]);
+            }
+            
+            // Se já existe um token válido, retorna o token existente
+            return response()->json([
+                'access_token' => $usuario->access_token,
+                'token_expires_in' => date('Y-m-d H:i:s', strtotime('+24 Hours'))
+            ]);
+        }
 
-            $token = Crypt::encryptString(collect(($update_token['access_token'])));
-            Usuario::where('nome_usuario', $request->usuario)->update(['access_token' => $token]);
+        return response()->json('Email ou Senha incorretos!', 422);
+    }
 
-            return response()->json(['access_token' => $token, 'token_expires_in' => $update_token['token_expires_in']]);
-        } else {
-            return response()->json('Email ou Senha incorretos!', 422);
+    // Adicione este método auxiliar para verificar se o token está expirado
+    private function isTokenExpired($token)
+    {
+        try {
+            // Aqui você pode implementar sua lógica de verificação de expiração
+            // Por exemplo, se você estiver armazenando a data de expiração junto com o token
+            return false; // Por padrão, assume que o token não está expirado
+        } catch (\Exception $e) {
+            return true; // Se houver algum erro ao decodificar o token, considera como expirado
         }
     }
 

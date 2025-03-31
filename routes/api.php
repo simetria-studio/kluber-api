@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\ClienteController;
+use App\Http\Controllers\api\MyPressController;
 use App\Http\Controllers\api\PlanoLubController;
 use App\Http\Controllers\api\PontoLubController;
 
@@ -47,3 +48,7 @@ Route::post('/get-conjunto', [PlanoLubController::class, 'conjunto']);
 Route::post('/get-equipamento', [PlanoLubController::class, 'equipamento']);
 Route::post('/sync-plan', [PlanoLubController::class, 'store']);
 Route::post('/get-plan', [PlanoLubController::class, 'getPlans']);
+
+Route::post('/my-press', [MyPressController::class, 'store']);
+Route::get('/get-my-press', [MyPressController::class, 'index']);
+Route::get('mypress/status/{jobId}', [MyPressController::class, 'checkStatus']);
