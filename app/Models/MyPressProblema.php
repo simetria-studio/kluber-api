@@ -12,10 +12,13 @@ class MyPressProblema extends Model
     protected $table = 'my_press_problemas';
 
     protected $fillable = [
+        'produto_redutor_principal',
         'problema_redutor_principal',
         'comentario_redutor_principal',
+        'produto_temperatura',
         'problema_temperatura',
         'comentario_temperatura',
+        'produto_tambor_principa',
         'problema_tambor_principal',
         'comentario_tambor_principal',
         'mypress_visita_id'

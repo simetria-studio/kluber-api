@@ -162,10 +162,13 @@ class MyPressController extends Controller
             if (!empty($request->problemas)) {
                 foreach ($request->problemas as $problemaData) {
                     MyPressProblema::create([
+                        'produto_redutor_principal' => $problemaData['lubrificante_redutor_principal'] ?? null,
                         'problema_redutor_principal' => $problemaData['problema_redutor_principal'] ?? null,
                         'comentario_redutor_principal' => $problemaData['comentario_redutor_principal'] ?? null,
+                        'produto_temperatura' => $problemaData['graxa_rolamentos_zonas_quentes'] ?? null,
                         'problema_temperatura' => $problemaData['problema_temperatura'] ?? null,
                         'comentario_temperatura' => $problemaData['comentario_temperatura'] ?? null,
+                        'produto_tambor_principa' => $problemaData['graxa_tambor_principal'] ?? null,
                         'problema_tambor_principal' => $problemaData['problema_tambor_principal'] ?? null,
                         'comentario_tambor_principal' => $problemaData['comentario_tambor_principal'] ?? null,
                         'mypress_visita_id' => $visita->id,
