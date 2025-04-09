@@ -49,6 +49,7 @@ Route::post('/get-equipamento', [PlanoLubController::class, 'equipamento']);
 Route::post('/sync-plan', [PlanoLubController::class, 'store']);
 Route::post('/get-plan', [PlanoLubController::class, 'getPlans']);
 
-Route::post('/my-press', [MyPressController::class, 'store']);
-Route::get('/get-my-press', [MyPressController::class, 'index']);
-Route::get('mypress/status/{jobId}', [MyPressController::class, 'checkStatus']);
+Route::post('/my-press', [MyPressController::class, 'save']);
+Route::post('/my-press-create', [MyPressController::class, 'create']);
+// Route::get('/get-my-press', [MyPressController::class, 'index']);
+// Route::get('mypress/status/{jobId}', [MyPressController::class, 'checkStatus']);

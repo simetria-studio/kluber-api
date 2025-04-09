@@ -22,7 +22,11 @@ class MyPressStoreRequest extends FormRequest
             'prensas.*.prensa.fabricante' => 'required|string',
             'prensas.*.prensa.comprimento' => 'required|numeric',
             'prensas.*.prensa.espessura' => 'required|numeric',
+            'prensas.*.prensa.tipo_prensa' => 'required|string',
+            'prensas.*.prensa.fabricante' => 'required|string',
+            'prensas.*.prensa.comprimento' => 'required|numeric',
+            'prensas.*.prensa.espessura' => 'required|numeric',
             // Adicione mais regras conforme necessário
         ];
     }
-} 
+}

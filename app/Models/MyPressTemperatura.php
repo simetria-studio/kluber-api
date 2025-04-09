@@ -19,11 +19,11 @@ class MyPressTemperatura extends Model
         'zona3',
         'zona4',
         'zona5',
-        'mypress_elemento_id'
+        'mypress_prensa_id'
     ];
 
-    public function elemento()
+    public function prensa()
     {
-        return $this->belongsTo(MyPressElemento::class);
+        return $this->belongsTo(MyPressPrensa::class);
     }
 }

@@ -59,39 +59,43 @@ class MyPressController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        
+        \Log::info('Dados recebidos:', ['request' => $request->all()]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(MyPressStoreRequest $request)
+    public function save(Request $request)
     {
         try {
             DB::beginTransaction();
 
             \Log::info('Dados recebidos:', ['request' => $request->all()]);
 
+            // Get the actual request data from the nested structure
+            $requestData = $request->all();
+            $requestData = $requestData['request'] ?? $requestData;
+
             // 1. Criar a visita
             $visita = MyPressVisita::create([
                 'codigo_empresa' => '0001',
-                'data_visita' => $request->visita['data_visita'] ?? null,
-                'cliente' => $request->visita['cliente'] ?? null,
-                'contato_cliente' => $request->visita['contato_cliente'] ?? null,
-                'contato_kluber' => $request->visita['contato_kluber'] ?? null,
+                'data_visita' => isset($requestData['visita']['data_visita']) ? \Carbon\Carbon::parse($requestData['visita']['data_visita'])->format('Y-m-d') : null,
+                'cliente' => $requestData['visita']['cliente'] ?? null,
+                'contato_cliente' => $requestData['visita']['contato_cliente'] ?? null,
+                'contato_kluber' => $requestData['visita']['contato_kluber'] ?? null,
             ]);
 
             // 2. Criar as prensas
-            if (!empty($request->prensas)) {
-                foreach ($request->prensas as $prensaData) {
+            if (!empty($requestData['prensas'])) {
+                foreach ($requestData['prensas'] as $prensaData) {
                     $prensa = MyPressPrensa::create([
                         'codigo_empresa' => '0001',
                         'tipo_prensa' => $prensaData['prensa']['tipo_prensa'] ?? null,
                         'fabricante' => $prensaData['prensa']['fabricante'] ?? null,
                         'comprimento' => $prensaData['prensa']['comprimento'] ?? null,
-                        'espressura' => $prensaData['prensa']['espessura'] ?? null,
+                        'espressura' => $prensaData['prensa']['espressura'] ?? null,
                         'produto' => $prensaData['prensa']['produto'] ?? null,
                         'velocidade' => $prensaData['prensa']['velocidade'] ?? null,
                         'produto_cinta' => $prensaData['prensa']['produto_cinta'] ?? null,
@@ -111,56 +115,107 @@ class MyPressController extends Controller
                                 'toma_consumo_real' => $elementoData['elemento']['toma'] ?? null,
                                 'posicao' => $elementoData['elemento']['posicao'] ?? null,
                                 'tipo' => $elementoData['elemento']['tipo'] ?? null,
-                                'mypress' => $elementoData['elemento']['mypress'] ?? null,
                                 'mypress_prensa_id' => $prensa->id,
                             ]);
 
                             // 4. Criar comentários para cada elemento
                             if (!empty($elementoData['comentarios'])) {
-                                foreach ($elementoData['comentarios'] as $comentarioData) {
+                                $comentarios = $elementoData['comentarios'];
+
+                                // Ensure comentarios is an array
+                                if (!is_array($comentarios)) {
+                                    $comentarios = [$comentarios];
+                                }
+
+                                foreach ($comentarios as $comentarioData) {
+                                    // Skip if comentarioData is not an array
+                                    if (!is_array($comentarioData)) {
+                                        continue;
+                                    }
+
+                                    // Handle nested comentario structure
+                                    $comentarioText = '';
+                                    if (isset($comentarioData['comentario'])) {
+                                        if (is_array($comentarioData['comentario'])) {
+                                            $comentarioText = $comentarioData['comentario']['comentario'] ?? '';
+                                        } else {
+                                            $comentarioText = $comentarioData['comentario'];
+                                        }
+                                    }
+
                                     $comentario = MyPressComentario::create([
                                         'codigo_empresa' => '0001',
-                                        'comentario' => $comentarioData['comentario']['comentario'] ?? null,
+                                        'comentario' => $comentarioText,
                                         'mypress_elemento_id' => $elemento->id,
                                     ]);
 
                                     // 5. Criar anexos para cada comentário
                                     if (!empty($comentarioData['anexos'])) {
-                                        foreach ($comentarioData['anexos'] as $anexoData) {
+                                        $anexos = $comentarioData['anexos'];
+
+                                        // Handle different types of anexos data
+                                        if (is_string($anexos)) {
+                                            // If anexos is a string, create a single anexo with that string as the name
                                             MyPressAnexo::create([
                                                 'codigo_empresa' => '0001',
-                                                'nome' => $anexoData['nome'] ?? null,
-                                                'tipo' => $anexoData['tipo'] ?? null,
-                                                'url' => $anexoData['url'] ?? null,
-                                                'base64' => $anexoData['base64'] ?? null,
+                                                'nome' => $anexos,
+                                                'tipo' => null,
+                                                'url' => null,
+                                                'base64' => null,
                                                 'mypress_comentario_id' => $comentario->id,
                                             ]);
+                                        } elseif (is_array($anexos)) {
+                                            // If anexos is an array, process each item
+                                            foreach ($anexos as $anexoData) {
+                                                // Handle both string and array anexoData
+                                                if (is_string($anexoData)) {
+                                                    // If anexoData is a string, use it as the name
+                                                    MyPressAnexo::create([
+                                                        'codigo_empresa' => '0001',
+                                                        'nome' => $anexoData,
+                                                        'tipo' => null,
+                                                        'url' => null,
+                                                        'base64' => null,
+                                                        'mypress_comentario_id' => $comentario->id,
+                                                    ]);
+                                                } elseif (is_array($anexoData)) {
+                                                    // If anexoData is an array, use its fields
+                                                    MyPressAnexo::create([
+                                                        'codigo_empresa' => '0001',
+                                                        'nome' => $anexoData['nome'] ?? '',
+                                                        'tipo' => $anexoData['tipo'] ?? null,
+                                                        'url' => $anexoData['url'] ?? null,
+                                                        'base64' => $anexoData['base64'] ?? null,
+                                                        'mypress_comentario_id' => $comentario->id,
+                                                    ]);
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
 
-                            // 6. Criar temperaturas para cada elemento
-                            if (!empty($elementoData['temperaturas'])) {
-                                foreach ($elementoData['temperaturas'] as $temperaturaData) {
-                                    MyPressTemperatura::create([
-                                        'zona1' => $temperaturaData['zona1'] ?? null,
-                                        'zona2' => $temperaturaData['zona2'] ?? null,
-                                        'zona3' => $temperaturaData['zona3'] ?? null,
-                                        'zona4' => $temperaturaData['zona4'] ?? null,
-                                        'zona5' => $temperaturaData['zona5'] ?? null,
-                                        'mypress_elemento_id' => $elemento->id
-                                    ]);
-                                }
-                            }
+                    // 6. Criar temperaturas para cada prensa
+                    if (!empty($prensaData['temperaturas'])) {
+                        foreach ($prensaData['temperaturas'] as $temperaturaData) {
+                            MyPressTemperatura::create([
+                                'zona1' => $temperaturaData['zona1'] ?? null,
+                                'zona2' => $temperaturaData['zona2'] ?? null,
+                                'zona3' => $temperaturaData['zona3'] ?? null,
+                                'zona4' => $temperaturaData['zona4'] ?? null,
+                                'zona5' => $temperaturaData['zona5'] ?? null,
+                                'mypress_elemento_id' => $prensa->id
+                            ]);
                         }
                     }
                 }
             }
 
             // 7. Criar problemas
-            if (!empty($request->problemas)) {
-                foreach ($request->problemas as $problemaData) {
+            if (!empty($requestData['problemas'])) {
+                foreach ($requestData['problemas'] as $problemaData) {
                     MyPressProblema::create([
                         'produto_redutor_principal' => $problemaData['lubrificante_redutor_principal'] ?? null,
                         'problema_redutor_principal' => $problemaData['problema_redutor_principal'] ?? null,
