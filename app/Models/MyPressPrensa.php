@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class MyPressPrensa extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'my_press_prensas';
 
     protected $fillable = [
@@ -22,7 +22,8 @@ class MyPressPrensa extends Model
         'produto_cinta',
         'produto_corrente',
         'produto_bendroads',
-        'visita_id'
+        'visita_id',
+        'torque',
     ];
 
     public function visita()
