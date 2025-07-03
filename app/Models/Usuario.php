@@ -76,6 +76,7 @@ class Usuario extends Authenticatable
         "updated_at",
         "access_token",
         "token_expires_in",
+        "data_solicitacao_acesso",
     ];
 
     protected $hidden = [

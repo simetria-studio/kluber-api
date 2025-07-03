@@ -24,6 +24,7 @@ class MyPressPrensa extends Model
         'produto_bendroads',
         'visita_id',
         'torque',
+        'largura',
     ];
 
     public function visita()

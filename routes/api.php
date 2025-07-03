@@ -51,5 +51,7 @@ Route::post('/get-plan', [PlanoLubController::class, 'getPlans']);
 
 Route::post('/my-press', [MyPressController::class, 'save']);
 Route::post('/my-press-create', [MyPressController::class, 'create']);
+
+Route::post('/new-user', [UserController::class, 'newUser']);
 // Route::get('/get-my-press', [MyPressController::class, 'index']);
 // Route::get('mypress/status/{jobId}', [MyPressController::class, 'checkStatus']);

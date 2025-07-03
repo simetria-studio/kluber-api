@@ -102,6 +102,7 @@ class MyPressController extends Controller
                         'produto_corrente' => $prensaData['prensa']['produto_corrente'] ?? null,
                         'produto_bendroads' => $prensaData['prensa']['produto_bendroads'] ?? null,
                         'torque' => $prensaData['prensa']['torque'] ?? null,
+                        'largura' => $prensaData['prensa']['largura'] ?? null,
                         'visita_id' => $visita->id,
                     ]);
 

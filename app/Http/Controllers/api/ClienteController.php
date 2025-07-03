@@ -10,6 +10,7 @@ class ClienteController extends Controller
 {
     public function getClientes(Request $request)
     {
+        \Log::info($request->all());
         if (!$request->search_text) {
             $clientes = Cliente::where('ativo', 'S')->select([
                 'id',
