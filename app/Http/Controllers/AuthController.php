@@ -93,30 +93,30 @@ class AuthController extends Controller
         }
 
         $authValid = Auth::guard('web')->validate([
-            'nome_usuario' => $request->usuario, 
+            'nome_usuario' => $request->usuario,
             'password' => $request->password
         ]);
 
         if ($authValid) {
             // Busca o usuário e seu token atual
             $usuario = Usuario::where('nome_usuario', $request->usuario)->first();
-            
+
             // Se não existe token ou o token está expirado, cria um novo
             if (empty($usuario->access_token) || $this->isTokenExpired($usuario->access_token)) {
                 $newToken = [
                     'access_token' => (string) \Str::uuid(),
                     'token_expires_in' => date('Y-m-d H:i:s', strtotime('+24 Hours'))
                 ];
-                
+
                 $token = Crypt::encryptString(collect($newToken['access_token']));
                 $usuario->update(['access_token' => $token]);
-                
+
                 return response()->json([
                     'access_token' => $token,
                     'token_expires_in' => $newToken['token_expires_in']
                 ]);
             }
-            
+
             // Se já existe um token válido, retorna o token existente
             return response()->json([
                 'access_token' => $usuario->access_token,

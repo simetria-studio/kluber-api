@@ -198,7 +198,7 @@ class MyPressController extends Controller
                             }
                         }
                     }
-
+                    \Log::info('Temperaturas:', ['temperaturas' => $prensaData['temperaturas']]);
                     // 6. Criar temperaturas para cada prensa
                     if (!empty($prensaData['temperaturas'])) {
                         foreach ($prensaData['temperaturas'] as $temperaturaData) {
