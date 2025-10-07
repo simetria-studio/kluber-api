@@ -23,6 +23,7 @@ class PlanoLubController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info(['store' => $request->all()]);
         $data = $request->all();
 
         \Log::info('Plano de lubrificação recebido: ' . json_encode($data));

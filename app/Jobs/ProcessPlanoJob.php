@@ -38,8 +38,9 @@ class ProcessPlanoJob implements ShouldQueue
             $nextNumeroPlano = $lastPlano ? (int) $lastPlano->numero_plano + 1 : 1;
             $existingPlano = Plano::where('codigo_mobile', $planoData['codigo_mobile'])->first();
             $cliente = Cliente::where('razao_social', $planoData['cliente'])->first();
-
+            \Log::info(['planoData' => $planoData]);
             if (!$existingPlano) {
+                \Log::info(['existingPlano' => $existingPlano]);
                 $plano = Plano::create([
                     'codigo_empresa' => '0001',
                     'numero_plano' => '000' . str_pad($nextNumeroPlano, 3, '0', STR_PAD_LEFT),
@@ -55,6 +56,7 @@ class ProcessPlanoJob implements ShouldQueue
                 ]);
 
                 foreach ($planoData['areas'] as $area) {
+                    \Log::info(['area' => $area]);
                     $novaArea = new Area();
                     $novaArea->nome_area = $area['nome'];
                     $novaArea->id_plano = $plano->id;
@@ -62,6 +64,7 @@ class ProcessPlanoJob implements ShouldQueue
                     $novaArea->save();
 
                     foreach ($area['subareas'] as $subarea) {
+                        \Log::info(['subarea' => $subarea]);
                         $novaSubarea = new SubArea();
                         $novaSubarea->nome_subarea = $subarea['nome'];
                         $novaSubarea->id_area = $novaArea->id;
@@ -69,6 +72,7 @@ class ProcessPlanoJob implements ShouldQueue
                         $novaSubarea->save();
 
                         foreach ($subarea['linhas'] as $linha) {
+                            \Log::info(['linha' => $linha]);
                             $novaLinha = new Linha();
                             $novaLinha->nome_linha = $linha['nome'];
                             $novaLinha->id_subarea = $novaSubarea->id;
@@ -76,6 +80,7 @@ class ProcessPlanoJob implements ShouldQueue
                             $novaLinha->save();
 
                             foreach ($linha['tags_maquinas'] as $tagMaquina) {
+                                \Log::info(['tagMaquina' => $tagMaquina]);
                                 $novaTagMaquina = new Maquina();
                                 $novaTagMaquina->nome_maquina = $tagMaquina['maquina_nome'] ?? ' ';
                                 $novaTagMaquina->id_linha = $novaLinha->id;
@@ -84,6 +89,7 @@ class ProcessPlanoJob implements ShouldQueue
                                 $novaTagMaquina->save();
 
                                 foreach ($tagMaquina['conjuntos_equip'] as $conjuntoEquip) {
+                                    \Log::info(['conjuntoEquip' => $conjuntoEquip]);
                                     $novoConjuntoEquip = new EquipMaster();
                                     $novoConjuntoEquip->codigo_empresa = '0001';
                                     $novoConjuntoEquip->planta = $plano->codigo_unidade;
@@ -100,13 +106,14 @@ class ProcessPlanoJob implements ShouldQueue
 
                                     $sequencial = 1;
                                     foreach ($conjuntoEquip['pontos'] as $ponto) {
-                                        //ELLER NÃO MEXER NESSE CÓDIGO, SE PODE CAGAR COM TUDO 
+                                        \Log::info(['ponto' => $ponto]);
+                                        //ELLER NÃO MEXER NESSE CÓDIGO, SE PODE CAGAR COM TUDO
                                         $textoLongo = TextoLongo::where('codigo_atv', $ponto['atv_breve_codigo'])->first();
 
                                         if ($textoLongo) {
-                                           
+                                            \Log::info(['textoLongo' => $textoLongo]);
                                             $textoComSubstituicao = str_replace('{{DESCRIÇÃO_MATERIAL}}', $ponto['lub_name'], $textoLongo->texto);
-                                           
+
                                             $textoComSubstituicao = str_replace('{{CODIGO_PRODUTO}}', $ponto['lub_codigo'], $textoComSubstituicao);
                                         } else {
                                             $textoComSubstituicao = '';
@@ -147,7 +154,7 @@ class ProcessPlanoJob implements ShouldQueue
             }
         } catch (\Exception $e) {
             \Log::error($e->getMessage());
-            throw $e; 
+            throw $e;
         }
     }
 }
