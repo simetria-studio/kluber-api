@@ -17,12 +17,28 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Log;
 
 class ProcessPlanoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $planoData;
+
+    /**
+     * O número de tentativas do job.
+     */
+    public $tries = 3;
+
+    /**
+     * O número de segundos que o job pode ser executado antes de timeout.
+     */
+    public $timeout = 300; // 5 minutos
+
+    /**
+     * O número de segundos para aguardar antes de tentar novamente.
+     */
+    public $backoff = [30, 60, 120]; // Backoff exponencial
 
     public function __construct($planoData)
     {
@@ -31,16 +47,28 @@ class ProcessPlanoJob implements ShouldQueue
 
     public function handle()
     {
+        // Aumentar limite de memória para arquivos grandes
+        ini_set('memory_limit', '512M');
+
+        // Aumentar tempo limite de execução
+        set_time_limit(300);
 
         try {
             $planoData = $this->planoData;
+
+            // Log apenas informações essenciais para evitar problemas de memória
+            Log::info('Iniciando processamento do plano', [
+                'codigo_mobile' => $planoData['codigo_mobile'] ?? 'N/A',
+                'cliente' => $planoData['cliente'] ?? 'N/A',
+                'total_areas' => count($planoData['areas'] ?? [])
+            ]);
+
             $lastPlano = Plano::orderBy('numero_plano', 'desc')->first();
             $nextNumeroPlano = $lastPlano ? (int) $lastPlano->numero_plano + 1 : 1;
             $existingPlano = Plano::where('codigo_mobile', $planoData['codigo_mobile'])->first();
             $cliente = Cliente::where('razao_social', $planoData['cliente'])->first();
-            \Log::info(['planoData' => $planoData]);
             if (!$existingPlano) {
-                \Log::info(['existingPlano' => $existingPlano]);
+                Log::info('Criando novo plano', ['numero_plano' => $nextNumeroPlano]);
                 $plano = Plano::create([
                     'codigo_empresa' => '0001',
                     'numero_plano' => '000' . str_pad($nextNumeroPlano, 3, '0', STR_PAD_LEFT),
@@ -55,8 +83,11 @@ class ProcessPlanoJob implements ShouldQueue
                     'codigo_mobile' => $planoData['codigo_mobile'] ?? ' ',
                 ]);
 
-                foreach ($planoData['areas'] as $area) {
-                    \Log::info(['area' => $area]);
+                $totalAreas = count($planoData['areas']);
+                Log::info("Processando {$totalAreas} áreas");
+
+                foreach ($planoData['areas'] as $index => $area) {
+                    Log::info("Processando área " . ($index + 1) . "/{$totalAreas}: " . ($area['nome'] ?? 'N/A'));
                     $novaArea = new Area();
                     $novaArea->nome_area = $area['nome'];
                     $novaArea->id_plano = $plano->id;
@@ -64,7 +95,6 @@ class ProcessPlanoJob implements ShouldQueue
                     $novaArea->save();
 
                     foreach ($area['subareas'] as $subarea) {
-                        \Log::info(['subarea' => $subarea]);
                         $novaSubarea = new SubArea();
                         $novaSubarea->nome_subarea = $subarea['nome'];
                         $novaSubarea->id_area = $novaArea->id;
@@ -72,7 +102,6 @@ class ProcessPlanoJob implements ShouldQueue
                         $novaSubarea->save();
 
                         foreach ($subarea['linhas'] as $linha) {
-                            \Log::info(['linha' => $linha]);
                             $novaLinha = new Linha();
                             $novaLinha->nome_linha = $linha['nome'];
                             $novaLinha->id_subarea = $novaSubarea->id;
@@ -80,7 +109,6 @@ class ProcessPlanoJob implements ShouldQueue
                             $novaLinha->save();
 
                             foreach ($linha['tags_maquinas'] as $tagMaquina) {
-                                \Log::info(['tagMaquina' => $tagMaquina]);
                                 $novaTagMaquina = new Maquina();
                                 $novaTagMaquina->nome_maquina = $tagMaquina['maquina_nome'] ?? ' ';
                                 $novaTagMaquina->id_linha = $novaLinha->id;
@@ -89,7 +117,6 @@ class ProcessPlanoJob implements ShouldQueue
                                 $novaTagMaquina->save();
 
                                 foreach ($tagMaquina['conjuntos_equip'] as $conjuntoEquip) {
-                                    \Log::info(['conjuntoEquip' => $conjuntoEquip]);
                                     $novoConjuntoEquip = new EquipMaster();
                                     $novoConjuntoEquip->codigo_empresa = '0001';
                                     $novoConjuntoEquip->planta = $plano->codigo_unidade;
@@ -105,21 +132,19 @@ class ProcessPlanoJob implements ShouldQueue
                                     $novoConjuntoEquip->save();
 
                                     $sequencial = 1;
-                                    foreach ($conjuntoEquip['pontos'] as $ponto) {
-                                        \Log::info(['ponto' => $ponto]);
+                                    $totalPontos = count($conjuntoEquip['pontos']);
+                                    Log::info("Processando {$totalPontos} pontos para conjunto {$conjuntoEquip['conj_nome']}");
+
+                                    foreach ($conjuntoEquip['pontos'] as $pontoIndex => $ponto) {
                                         //ELLER NÃO MEXER NESSE CÓDIGO, SE PODE CAGAR COM TUDO
                                         $textoLongo = TextoLongo::where('codigo_atv', $ponto['atv_breve_codigo'])->first();
 
                                         if ($textoLongo) {
-                                            \Log::info(['textoLongo' => $textoLongo]);
                                             $textoComSubstituicao = str_replace('{{DESCRIÇÃO_MATERIAL}}', $ponto['lub_name'], $textoLongo->texto);
-
                                             $textoComSubstituicao = str_replace('{{CODIGO_PRODUTO}}', $ponto['lub_codigo'], $textoComSubstituicao);
                                         } else {
                                             $textoComSubstituicao = '';
                                         }
-
-                                        \Log::info('Texto longo após substituições: ' . $textoComSubstituicao);
 
                                         AtvComponente::create([
                                             'codigo_empresa' => '0001',
@@ -145,16 +170,49 @@ class ProcessPlanoJob implements ShouldQueue
                                         ]);
 
                                         $sequencial++;
+
+                                        // Log de progresso a cada 10 pontos para arquivos grandes
+                                        if (($pontoIndex + 1) % 10 === 0) {
+                                            Log::info("Processados " . ($pontoIndex + 1) . "/{$totalPontos} pontos");
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+
+                Log::info('Plano processado com sucesso', [
+                    'numero_plano' => $plano->numero_plano,
+                    'total_areas' => $totalAreas
+                ]);
+            } else {
+                Log::info('Plano já existe, pulando processamento', [
+                    'codigo_mobile' => $planoData['codigo_mobile']
+                ]);
             }
         } catch (\Exception $e) {
-            \Log::error($e->getMessage());
+            Log::error('Erro ao processar plano', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'codigo_mobile' => $planoData['codigo_mobile'] ?? 'N/A'
+            ]);
             throw $e;
         }
+    }
+
+    /**
+     * Handle a job failure.
+     */
+    public function failed(\Throwable $exception)
+    {
+        Log::error('Job ProcessPlanoJob falhou definitivamente', [
+            'error' => $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'codigo_mobile' => $this->planoData['codigo_mobile'] ?? 'N/A',
+            'cliente' => $this->planoData['cliente'] ?? 'N/A'
+        ]);
     }
 }
