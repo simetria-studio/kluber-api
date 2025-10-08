@@ -30,6 +30,21 @@ class AuthController extends Controller
             return redirect()->back()->with('error', 'Usuario ou Senha invalidos!');
         }
     }
+    public function atualizaSenha(Request $request)
+    {
+        $user = Usuario::where('nome_usuario', $request->nome_usuario)->first();
+        if (!$user) {
+            return response()->json([
+                'msg' => 'Usuário não encontrado.'
+            ]);
+        } else {
+            $user->password = bcrypt($request->senha);
+            $user->save();
+            return response()->json([
+                'msg' => 'Senha atualizada com sucesso.'
+            ]);
+        }
+    }
 
     public function verificaSenha(Request $request)
     {
